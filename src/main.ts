@@ -1,14 +1,18 @@
 import { NestFactory } from '@nestjs/core'
 import { AppModule } from './app.module'
 import { MicroserviceOptions, Transport } from '@nestjs/microservices'
+import config from './config'
 
 async function bootstrap() {
+    // Config
+    const configService = config()
+    // App
     const app = await NestFactory.create(AppModule)
     // NATS Microservice
     app.connectMicroservice<MicroserviceOptions>({
         transport: Transport.NATS,
         options: {
-            servers: ['nats://nats:4222'],
+            servers: [`nats://${configService.nats}:4222`],
         },
     })
     app.enableCors({
