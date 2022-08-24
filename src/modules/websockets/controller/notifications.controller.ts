@@ -1,13 +1,13 @@
 import { Controller } from '@nestjs/common'
-import { MessagePattern, Payload } from '@nestjs/microservices'
-import { NotifyGlobal } from '../models/notify_global.model'
+import { EventPattern, Payload } from '@nestjs/microservices'
+import { NotifyClassroom, NotifyGlobal } from '../models/notify_global.model'
 import { WebsocketService } from '../service/websocket.service'
 
 @Controller('notifications_ws')
 export class NotificationsController {
     constructor(private notificationsService: WebsocketService) {}
 
-    @MessagePattern('notify/global')
+    @EventPattern('notify/global')
     getNotificationsGlobal(@Payload() data: NotifyGlobal) {
         if (data.Type === 'global') {
             this.notificationsService.notifyGlobal()
@@ -16,5 +16,26 @@ export class NotificationsController {
             this.notificationsService.notifyStudents()
             this.notificationsService.saveNotificationStudents(data)
         }
+    }
+
+    @EventPattern('notify/classroom')
+    notifyClassroom(@Payload() data: NotifyClassroom) {
+        this.notificationsService.saveNotificationClassroom(data)
+        this.notificationsService.notifyClassroom(data.Room)
+    }
+
+    @EventPattern('delete_notification')
+    deleteNotification(@Payload() idNotification: string) {
+        this.notificationsService.deleteAllNotification(idNotification)
+    }
+
+    @EventPattern('notify/student')
+    notifyStudent(@Payload() data: NotifyClassroom & { IDUser: string }) {
+        const { IDUser, ...rest } = data
+        this.notificationsService.saveNotificationClassroomStudent(
+            { ...rest },
+            IDUser,
+        )
+        this.notificationsService.notifyStudent(IDUser)
     }
 }

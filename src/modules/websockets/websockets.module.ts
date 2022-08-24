@@ -15,15 +15,22 @@ import {
 } from './entities/notifications_user.entity'
 import { NotificationsApiController } from './controller/notifications_api.controller'
 import { NotificationsStudentsGateway } from './ws/notifications_students.gateway'
+import config from 'src/config'
+import { ConfigType } from '@nestjs/config'
 
 @Module({
     imports: [
-        ClientsModule.register([
+        ClientsModule.registerAsync([
             {
-                name: 'NATS',
-                transport: Transport.NATS,
-                options: {
-                    servers: ['nats://nats:4222'],
+                name: 'NATS_CLIENT',
+                inject: [config.KEY],
+                useFactory: (configService: ConfigType<typeof config>) => {
+                    return {
+                        transport: Transport.NATS,
+                        options: {
+                            servers: [`nats://${configService.nats}:4222`],
+                        },
+                    }
                 },
             },
         ]),

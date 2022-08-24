@@ -10,6 +10,12 @@ export class NotificationsUser {
 
     @Prop({ required: true, type: Types.ObjectId, ref: Notification.name })
     notification: Types.ObjectId | Notification
+
+    @Prop({ required: true, default: false })
+    readed: boolean
+
+    @Prop({ required: true })
+    date: Date
 }
 
 export const NotificationsUserSchema =

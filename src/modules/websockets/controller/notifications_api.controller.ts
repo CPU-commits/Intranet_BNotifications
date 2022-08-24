@@ -22,6 +22,20 @@ import { WebsocketService } from '../service/websocket.service'
 export class NotificationsApiController {
     constructor(private notificationService: WebsocketService) {}
 
+    @Get('/get_count_notifications')
+    async getCountNotifications(@Res() res: Response, @Req() req: Request) {
+        try {
+            const user = req.user as PayloadToken
+            const notificationCount =
+                await this.notificationService.getCountNotifications(user._id)
+            handleRes(res, {
+                count: notificationCount,
+            })
+        } catch (err) {
+            handleError(err, res)
+        }
+    }
+
     @Get('/get_notifications')
     async getNotifications(
         @Res() res: Response,
