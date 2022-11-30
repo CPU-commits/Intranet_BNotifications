@@ -11,6 +11,8 @@ import { DatabaseModule } from './database/database.module'
 import { AuthModule } from './auth/auth.module'
 // Config
 import config from './config'
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler'
+import { APP_GUARD } from '@nestjs/core'
 
 @Module({
     imports: [
@@ -33,11 +35,22 @@ import config from './config'
                 MONGO_PORT: Joi.number().required(),
                 MONGO_CONNECTION: Joi.string().required(),
                 NATS_HOST: Joi.string().required(),
+                CLIENT_URL: Joi.string().required(),
             }),
         }),
         DatabaseModule,
+        ThrottlerModule.forRoot({
+            ttl: 1,
+            limit: 7,
+        }),
     ],
     controllers: [AppController],
-    providers: [AppService],
+    providers: [
+        AppService,
+        {
+            provide: APP_GUARD,
+            useClass: ThrottlerGuard,
+        },
+    ],
 })
 export class AppModule {}

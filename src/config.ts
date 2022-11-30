@@ -14,5 +14,6 @@ export default registerAs('config', () => {
             connection: process.env.MONGO_CONNECTION,
         },
         nats: process.env.NATS_HOST,
+        client_url: process.env.CLIENT_URL,
     }
 })
