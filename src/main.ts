@@ -2,7 +2,7 @@ import { NestFactory } from '@nestjs/core'
 import { AppModule } from './app.module'
 import { MicroserviceOptions, Transport } from '@nestjs/microservices'
 import helmet from 'helmet'
-import * as csruf from 'csurf'
+// import * as csruf from 'csurf'
 import config from './config'
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 import { ResApi } from './models/res.model'
@@ -55,7 +55,7 @@ async function bootstrap() {
     })
     SwaggerModule.setup('/api/notifications/docs', app, docuement)
     // Csurf
-    app.use(csruf())
+    // app.use(csruf())
     await app.startAllMicroservices()
     await app.listen(7000)
 }

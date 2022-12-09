@@ -27,7 +27,6 @@ import { APP_GUARD } from '@nestjs/core'
             validationSchema: Joi.object({
                 JWT_SECRET_KEY: Joi.string().required(),
                 NODE_ENV: Joi.string().required(),
-                PORT: Joi.number().required(),
                 MONGO_DB: Joi.string().required(),
                 MONGO_HOST: Joi.string().required(),
                 MONGO_ROOT_USERNAME: Joi.string().required(),
