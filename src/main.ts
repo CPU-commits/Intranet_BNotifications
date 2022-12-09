@@ -19,8 +19,10 @@ async function bootstrap() {
             servers: [`nats://${configService.nats}:4222`],
         },
     })
+    const httpClient = `http://${configService.client_url}`
+    const httpsClient = `https://${configService.client_url}`
     app.enableCors({
-        origin: configService.client_url,
+        origin: [httpClient, httpsClient],
         methods: ['GET', 'PUT', 'POST', 'DELETE'],
         credentials: true,
     })
