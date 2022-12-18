@@ -37,8 +37,8 @@ export class NotificationsStudentsGateway
         if (!isAuth.success) new WsException('Not auth')
         const user = isAuth.user as PayloadToken
         if (
-            user.user_type !== Role.STUDENT &&
-            user.user_type !== Role.STUDENT_DIRECTIVE
+            user?.user_type !== Role.STUDENT &&
+            user?.user_type !== Role.STUDENT_DIRECTIVE
         )
             new WsException('Students only')
         // Add client
