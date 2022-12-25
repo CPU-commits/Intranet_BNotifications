@@ -13,6 +13,7 @@ import { AuthModule } from './auth/auth.module'
 import config from './config'
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler'
 import { APP_GUARD } from '@nestjs/core'
+import { MainController } from './main/main.controller';
 
 @Module({
     imports: [
@@ -43,7 +44,7 @@ import { APP_GUARD } from '@nestjs/core'
             limit: 7,
         }),
     ],
-    controllers: [AppController],
+    controllers: [AppController, MainController],
     providers: [
         AppService,
         {

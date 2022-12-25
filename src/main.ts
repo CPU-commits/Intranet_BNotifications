@@ -17,6 +17,7 @@ async function bootstrap() {
         transport: Transport.NATS,
         options: {
             servers: [`nats://${configService.nats}:4222`],
+            queue: 'notifications',
         },
     })
     const httpClient = `http://${configService.client_url}`
