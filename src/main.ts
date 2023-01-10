@@ -14,6 +14,7 @@ async function bootstrap() {
     // App
     const app = await NestFactory.create(AppModule)
     // Logger
+
     app.useLogger(app.get(WINSTON_MODULE_NEST_PROVIDER))
     // NATS Microservice
     app.connectMicroservice<MicroserviceOptions>({
