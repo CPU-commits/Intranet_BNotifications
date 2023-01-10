@@ -6,12 +6,15 @@ import helmet from 'helmet'
 import config from './config'
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 import { ResApi } from './models/res.model'
+import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston'
 
 async function bootstrap() {
     // Config
     const configService = config()
     // App
     const app = await NestFactory.create(AppModule)
+    // Logger
+    app.useLogger(app.get(WINSTON_MODULE_NEST_PROVIDER))
     // NATS Microservice
     app.connectMicroservice<MicroserviceOptions>({
         transport: Transport.NATS,

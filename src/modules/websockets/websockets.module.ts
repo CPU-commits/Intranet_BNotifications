@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common'
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common'
 import { NotificationsGateway } from './ws/notifications.gateway'
 import { WebsocketService } from './service/websocket.service'
 import { NotificationsController } from './controller/notifications.controller'
@@ -17,6 +17,9 @@ import { NotificationsApiController } from './controller/notifications_api.contr
 import { NotificationsStudentsGateway } from './ws/notifications_students.gateway'
 import config from 'src/config'
 import { ConfigType } from '@nestjs/config'
+import { WinstonModule } from 'nest-winston'
+import * as winston from 'winston'
+import { CorrelationIdMiddleware } from 'src/correlation-id.middleware'
 
 @Module({
     imports: [
@@ -45,6 +48,39 @@ import { ConfigType } from '@nestjs/config'
             },
         ]),
         UserModule,
+        WinstonModule.forRootAsync({
+            useFactory: (configService: ConfigType<typeof config>) => {
+                const { timestamp, json, combine, simple } = winston.format
+                const transports: Array<winston.transport> = [
+                    new winston.transports.File({
+                        filename: 'error.log',
+                        level: 'error',
+                        dirname: `${process.cwd()}/logs`,
+                        maxsize: 10000000,
+                        maxFiles: 2,
+                    }),
+                    new winston.transports.File({
+                        filename: 'combined.log',
+                        dirname: `${process.cwd()}/logs`,
+                        maxsize: 10000000,
+                        maxFiles: 3,
+                        level: 'info',
+                        format: combine(json(), timestamp()),
+                    }),
+                ]
+                if (configService.node_env !== 'prod')
+                    transports.push(
+                        new winston.transports.Console({
+                            format: combine(simple(), timestamp()),
+                        }),
+                    )
+                return {
+                    transports,
+                    format: combine(timestamp(), json()),
+                }
+            },
+            inject: [config.KEY],
+        }),
     ],
     providers: [
         NotificationsGateway,
@@ -53,4 +89,8 @@ import { ConfigType } from '@nestjs/config'
     ],
     controllers: [NotificationsController, NotificationsApiController],
 })
-export class WebsocketsModule {}
+export class AppModule implements NestModule {
+    configure(consumer: MiddlewareConsumer) {
+        consumer.apply(CorrelationIdMiddleware).forRoutes('*')
+    }
+}

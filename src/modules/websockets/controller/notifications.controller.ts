@@ -1,8 +1,10 @@
-import { Controller } from '@nestjs/common'
+import { Controller, UseInterceptors } from '@nestjs/common'
 import { EventPattern, Payload } from '@nestjs/microservices'
+import { LoggerInterceptor } from 'src/logger.interceptor'
 import { NotifyClassroom, NotifyGlobal } from '../models/notify_global.model'
 import { WebsocketService } from '../service/websocket.service'
 
+@UseInterceptors(LoggerInterceptor)
 @Controller('notifications_ws')
 export class NotificationsController {
     constructor(private notificationsService: WebsocketService) {}
