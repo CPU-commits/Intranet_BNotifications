@@ -1,4 +1,4 @@
-import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common'
+import { Module } from '@nestjs/common'
 import { NotificationsGateway } from './ws/notifications.gateway'
 import { WebsocketService } from './service/websocket.service'
 import { NotificationsController } from './controller/notifications.controller'
@@ -19,7 +19,6 @@ import config from 'src/config'
 import { ConfigType } from '@nestjs/config'
 import { WinstonModule } from 'nest-winston'
 import * as winston from 'winston'
-import { CorrelationIdMiddleware } from 'src/correlation-id.middleware'
 
 @Module({
     imports: [
@@ -89,8 +88,4 @@ import { CorrelationIdMiddleware } from 'src/correlation-id.middleware'
     ],
     controllers: [NotificationsController, NotificationsApiController],
 })
-export class AppModule implements NestModule {
-    configure(consumer: MiddlewareConsumer) {
-        consumer.apply(CorrelationIdMiddleware).forRoutes('*')
-    }
-}
+export class WebsocketModule {}

@@ -1,10 +1,9 @@
-import { Module } from '@nestjs/common'
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common'
 import { ConfigModule } from '@nestjs/config'
 import * as Joi from 'joi'
 
 import { AppController } from './app.controller'
 import { AppService } from './app.service'
-import { WebsocketsModule } from './modules/websockets/websockets.module'
 import { MailModule } from './modules/mail/mail.module'
 import { UserModule } from './modules/user/user.module'
 import { DatabaseModule } from './database/database.module'
@@ -13,11 +12,13 @@ import { AuthModule } from './auth/auth.module'
 import config from './config'
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler'
 import { APP_GUARD } from '@nestjs/core'
-import { MainController } from './main/main.controller';
+import { MainController } from './main/main.controller'
+import { CorrelationIdMiddleware } from './correlation-id.middleware'
+import { WebsocketModule } from './modules/websockets/websockets.module'
 
 @Module({
     imports: [
-        WebsocketsModule,
+        WebsocketModule,
         MailModule,
         UserModule,
         AuthModule,
@@ -53,4 +54,8 @@ import { MainController } from './main/main.controller';
         },
     ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+    configure(consumer: MiddlewareConsumer) {
+        consumer.apply(CorrelationIdMiddleware).forRoutes('*')
+    }
+}
