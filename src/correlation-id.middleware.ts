@@ -14,7 +14,9 @@ export class CorrelationIdMiddleware implements NestMiddleware {
     use(req: Request, res: Response, next: NextFunction) {
         const id = randomUUID()
         res.setHeader(CORRELATION_ID_HEADER, id)
-        this.logger.log(`Req ${id} - ${req.baseUrl} - ${req.rawHeaders}`)
+        this.logger.log(
+            `Req ${id} - ${req.baseUrl} - ${req.headers['user-agent']} - ${req.headers.host} ${req.headers.origin}`,
+        )
         next()
     }
 }
