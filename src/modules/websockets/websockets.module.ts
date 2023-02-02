@@ -19,6 +19,8 @@ import config from 'src/config'
 import { ConfigType } from '@nestjs/config'
 import { WinstonModule } from 'nest-winston'
 import * as winston from 'winston'
+import { NotificationsModule } from '../notifications/notifications.module'
+import { MemoryModule } from '../memory/memory.module'
 
 @Module({
     imports: [
@@ -80,6 +82,8 @@ import * as winston from 'winston'
             },
             inject: [config.KEY],
         }),
+        NotificationsModule,
+        MemoryModule,
     ],
     providers: [
         NotificationsGateway,

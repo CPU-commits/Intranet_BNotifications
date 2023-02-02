@@ -9,6 +9,7 @@ import { InjectModel } from '@nestjs/mongoose'
 import { Model } from 'mongoose'
 import { lastValueFrom } from 'rxjs'
 import { PayloadToken } from 'src/auth/models/token.model'
+import { NotificationsService } from 'src/modules/notifications/services/notifications/notifications.service'
 import { Student } from 'src/modules/user/entities/student.entity'
 import { UserService } from 'src/modules/user/service/user.service'
 import { Notification } from '../entities/notification.entity'
@@ -20,7 +21,8 @@ import { NotificationsStudentsGateway } from '../ws/notifications_students.gatew
 @Injectable()
 export class WebsocketService {
     constructor(
-        private userService: UserService,
+        private readonly userService: UserService,
+        private readonly notificationsService: NotificationsService,
         private readonly notificationGGlobal: NotificationsGateway,
         private readonly notificationGStudent: NotificationsStudentsGateway,
         @InjectModel(Notification.name)
@@ -159,48 +161,70 @@ export class WebsocketService {
     }
 
     async saveNotificationGlobal(data: NotifyGlobal) {
-        const users = await this.userService.getUsers()
-        const notification = await this.insertNotification(data)
-        const date = new Date()
-        const notifications = users.map((user) => {
-            return {
-                user: user._id.toString(),
-                notification: notification._id.toString(),
-                date,
-            }
-        })
-        const notificationsData = await this.notificationsUserModel.insertMany(
-            notifications,
-        )
-        return notificationsData
+        const LIMIT = 200
+        const notificationData: Array<NotificationsUser> = []
+        let flag = true
+        let skip = 0
+        while (flag) {
+            const users = await this.userService.getUsers(skip, LIMIT)
+            const notification = await this.insertNotification(data)
+            const date = new Date()
+            const notifications = users.users.map((user) => {
+                return {
+                    user: user._id.toString(),
+                    notification: notification._id.toString(),
+                    date,
+                }
+            })
+            const actualNotificationsData =
+                await this.notificationsUserModel.insertMany(notifications)
+            notificationData.push(...actualNotificationsData)
+            // Evaluate if has more users
+            if (users.hasMore) skip += LIMIT
+            else flag = false
+        }
+        return notificationData
     }
 
     async saveNotificationStudents(data: NotifyGlobal) {
-        const students = await this.userService.getStudents()
-        const notification = await this.insertNotification(data)
-        const date = new Date()
-        const notifications = students.map((student) => {
-            return {
-                user: student._id.toString(),
-                notification: notification._id.toString(),
-                date,
-            }
-        })
-        const notificationsData = await this.notificationsUserModel.insertMany(
-            notifications,
-        )
-        return notificationsData
+        const LIMIT = 200
+        const notificationData: Array<NotificationsUser> = []
+        let flag = true
+        let skip = 0
+        while (flag) {
+            const students = await this.userService.getStudents(skip, LIMIT)
+            const notification = await this.insertNotification(data)
+            const date = new Date()
+            const notifications = students.users.map((student) => {
+                return {
+                    user: student._id.toString(),
+                    notification: notification._id.toString(),
+                    date,
+                }
+            })
+            const actualNotificationsData =
+                await this.notificationsUserModel.insertMany(notifications)
+            notificationData.push(...actualNotificationsData)
+            // Evaluate if has more users
+            if (students.hasMore) skip += LIMIT
+            else flag = false
+        }
+        return notificationData
     }
 
     async saveNotificationClassroom(data: NotifyClassroom) {
         const students: Array<Student & { _id: string }> = await lastValueFrom(
             this.natsClient.send('get_students_by_course', data.Room),
         )
+        const users = await this.notificationsService.usersWithPreference(
+            students.map((student) => student.user),
+            'classroom',
+        )
         const notification = await this.insertNotificationClassroom(data)
         const date = new Date()
-        const notifications = students.map((student) => {
+        const notifications = users.map((user) => {
             return {
-                user: student.user._id,
+                user: user._id,
                 notification: notification._id.toString(),
                 date,
             }
@@ -215,14 +239,21 @@ export class WebsocketService {
         data: NotifyClassroom,
         idUser: string,
     ) {
-        const notification = await this.insertNotificationClassroom(data)
-        const date = new Date()
-        const newNotification = new this.notificationsUserModel({
-            date,
-            notification: notification._id.toString(),
-            user: idUser,
-        })
-        return await newNotification.save()
+        const user = await this.notificationsService.usersWithPreference(
+            [{ _id: idUser }],
+            'classroom',
+        )
+        if (user.length > 0) {
+            const notification = await this.insertNotificationClassroom(data)
+            const date = new Date()
+            const newNotification = new this.notificationsUserModel({
+                date,
+                notification: notification._id.toString(),
+                user: idUser,
+            })
+            return await newNotification.save()
+        }
+        return null
     }
 
     notifyGlobal() {

@@ -23,33 +23,145 @@ export class UserService {
         }
     }
 
-    async getUsers() {
-        return await this.userModel
-            .find(
+    async getUsers(skip = 0, limit = 200) {
+        const users = await this.userModel
+            .aggregate([
                 {
-                    status: 1,
+                    $match: {
+                        status: 1,
+                    },
                 },
                 {
-                    _id: 1,
+                    $project: {
+                        _id: 1,
+                    },
                 },
-            )
+                {
+                    $skip: skip,
+                },
+                {
+                    $limit: limit,
+                },
+                {
+                    $addFields: {
+                        _id: {
+                            $toString: '$_id',
+                        },
+                    },
+                },
+                {
+                    $lookup: {
+                        from: 'user_notification_prefrences',
+                        foreignField: 'user',
+                        localField: '_id',
+                        as: 'preferences',
+                    },
+                },
+                {
+                    $addFields: {
+                        preferences: {
+                            $arrayElemAt: ['$preferences', 0],
+                        },
+                    },
+                },
+                {
+                    $match: {
+                        $or: [
+                            {
+                                'preferences.preferences.app.globals': true,
+                            },
+                            {
+                                'preferences.preferences.app.globals': {
+                                    $exists: false,
+                                },
+                            },
+                        ],
+                    },
+                },
+                {
+                    $project: {
+                        _id: 1,
+                    },
+                },
+            ])
             .exec()
+        const usersCount = await this.userModel.count({ status: 1 }).exec()
+        return {
+            users,
+            hasMore: skip + limit < usersCount,
+        }
     }
 
-    async getStudents() {
-        return await this.userModel
-            .find(
+    async getStudents(skip = 0, limit = 200) {
+        const users = await this.userModel
+            .aggregate([
                 {
-                    status: 1,
-                    $or: [
-                        { user_type: Role.STUDENT },
-                        { user_type: Role.STUDENT_DIRECTIVE },
-                    ],
+                    $match: {
+                        status: 1,
+                        $or: [
+                            { user_type: Role.STUDENT },
+                            { user_type: Role.STUDENT_DIRECTIVE },
+                        ],
+                    },
                 },
                 {
-                    _id: 1,
+                    $project: {
+                        _id: 1,
+                    },
                 },
-            )
+                {
+                    $skip: skip,
+                },
+                {
+                    $limit: limit,
+                },
+                {
+                    $addFields: {
+                        _id: {
+                            $toString: '$_id',
+                        },
+                    },
+                },
+                {
+                    $lookup: {
+                        from: 'user_notification_prefrences',
+                        foreignField: 'user',
+                        localField: '_id',
+                        as: 'preferences',
+                    },
+                },
+                {
+                    $addFields: {
+                        preferences: {
+                            $arrayElemAt: ['$preferences', 0],
+                        },
+                    },
+                },
+                {
+                    $match: {
+                        $or: [
+                            {
+                                'preferences.preferences.app.globals': true,
+                            },
+                            {
+                                'preferences.preferences.app.globals': {
+                                    $exists: false,
+                                },
+                            },
+                        ],
+                    },
+                },
+                {
+                    $project: {
+                        _id: 1,
+                    },
+                },
+            ])
             .exec()
+        const usersCount = await this.userModel.count({ status: 1 }).exec()
+        return {
+            users,
+            hasMore: skip + limit < usersCount,
+        }
     }
 }

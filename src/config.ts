@@ -14,5 +14,20 @@ export default registerAs('config', () => {
         },
         nats: process.env.NATS_HOST,
         client_url: process.env.CLIENT_URL,
+        collge_name: process.env.COLLEGE_NAME,
+        backed_domain: process.env.BACKEND_DOMAIN,
+        email: {
+            smtpHost: process.env.SMTP_HOST,
+            smtpPort: parseInt(process.env.SMTP_PORT),
+            smtpUser: process.env.SMTP_USER,
+            smtpPass: process.env.SMTP_PASSWORD,
+            smtpSender: process.env.SMTP_SENDER,
+        },
+        redis: {
+            username: process.env.REDIS_USER,
+            password: process.env.REDIS_PASSWORD,
+            host: process.env.REDIS_HOST,
+            port: parseInt(process.env.REDIS_PORT),
+        },
     }
 })

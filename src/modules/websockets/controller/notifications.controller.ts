@@ -7,7 +7,7 @@ import { WebsocketService } from '../service/websocket.service'
 @UseInterceptors(LoggerInterceptor)
 @Controller('notifications_ws')
 export class NotificationsController {
-    constructor(private notificationsService: WebsocketService) {}
+    constructor(private readonly notificationsService: WebsocketService) {}
 
     @EventPattern('notify/global')
     getNotificationsGlobal(@Payload() data: NotifyGlobal) {

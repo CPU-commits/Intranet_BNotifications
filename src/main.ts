@@ -51,7 +51,6 @@ async function bootstrap() {
             'Apache 2.0',
             'http://www.apache.org/licenses/LICENSE-2.0.html',
         )
-        .setBasePath('/api/l')
         .addServer('http://localhost:3000')
         .addTag('Notifications', 'Notifications Service')
         .addBearerAuth()

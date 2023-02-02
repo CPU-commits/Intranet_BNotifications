@@ -2,7 +2,6 @@ import { Logger } from '@nestjs/common'
 import {
     OnGatewayConnection,
     OnGatewayInit,
-    SubscribeMessage,
     WebSocketGateway,
     WebSocketServer,
     WsException,
@@ -35,10 +34,5 @@ export class NotificationsGateway
 
     emitNotificationsBradcast(data: any) {
         this.server.emit('notify/global', data)
-    }
-
-    @SubscribeMessage('notify/students')
-    hadnleEvent() {
-        console.log('fg')
     }
 }

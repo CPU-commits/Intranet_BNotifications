@@ -11,25 +11,23 @@ import { WebsocketService } from '../service/websocket.service'
 import { PayloadToken } from 'src/auth/models/token.model'
 import { UserService } from 'src/modules/user/service/user.service'
 import { forwardRef, Inject } from '@nestjs/common'
+import { MemoryService } from 'src/modules/memory/services/memory/memory.service'
 
 @WebSocketGateway({ cors: '*', namespace: '/students' })
 export class NotificationsStudentsGateway
     implements OnGatewayConnection, OnGatewayDisconnect
 {
+    @WebSocketServer()
+    server: Server
+
     constructor(
         private readonly userService: UserService,
         @Inject(forwardRef(() => WebsocketService))
         private readonly wsService: WebsocketService,
+        private readonly memoryService: MemoryService,
     ) {}
-    @WebSocketServer()
-    server: Server
 
-    clients: Array<{
-        id: string
-        idUser: string
-    }> = []
-
-    handleConnection(client: Socket) {
+    async handleConnection(client: Socket) {
         if (!client.handshake.auth) new WsException('Authorization required')
         const isAuth = this.userService.jwtValidation(
             client.handshake.headers.authorization,
@@ -42,16 +40,12 @@ export class NotificationsStudentsGateway
         )
             new WsException('Students only')
         // Add client
-        this.clients.push({
-            id: client.id,
-            idUser: user._id,
-        })
+        await this.memoryService.set(client.id, user._id)
         this.joinCourseRoom(user, client)
     }
 
-    handleDisconnect(client: Socket) {
-        const index = this.clients.findIndex((c) => c.id === client.id)
-        this.clients.splice(index, 1)
+    async handleDisconnect(client: Socket) {
+        await this.memoryService.del(client.id)
     }
 
     async joinCourseRoom(user: PayloadToken, client: Socket) {
@@ -67,13 +61,11 @@ export class NotificationsStudentsGateway
         this.server.emit('notify/students', data)
     }
 
-    emitNotificationToUser(idUser: string, data: any) {
-        const idsClient = this.clients.filter((client) => {
-            if (client.idUser === idUser) return client
-        })
+    async emitNotificationToUser(idUser: string, data: any) {
+        const idsClient = await this.memoryService.getKeys(idUser)
         if (idsClient.length > 0) {
-            idsClient.forEach((client) => {
-                this.server.to(client.id).emit('notify/students', data)
+            idsClient.forEach((idClient) => {
+                this.server.to(idClient).emit('notify/students', data)
             })
         }
     }
