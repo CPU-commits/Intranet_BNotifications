@@ -21,18 +21,18 @@ import { WinstonModule } from 'nest-winston'
 import * as winston from 'winston'
 import { NotificationsModule } from '../notifications/notifications.module'
 import { MemoryModule } from '../memory/memory.module'
+import { getNatsServers } from 'src/utils/get_nats_servers'
 
 @Module({
     imports: [
         ClientsModule.registerAsync([
             {
                 name: 'NATS_CLIENT',
-                inject: [config.KEY],
-                useFactory: (configService: ConfigType<typeof config>) => {
+                useFactory: () => {
                     return {
                         transport: Transport.NATS,
                         options: {
-                            servers: [`nats://${configService.nats}:4222`],
+                            servers: getNatsServers(),
                         },
                     }
                 },

@@ -1,21 +1,19 @@
 import { Module } from '@nestjs/common'
-import { ConfigType } from '@nestjs/config'
 import { ClientsModule, Transport } from '@nestjs/microservices'
-import config from 'src/config'
 import { MailService } from './services/mail/mail.service'
 import { NatsController } from './controllers/nats/nats.controller'
+import { getNatsServers } from 'src/utils/get_nats_servers'
 
 @Module({
     imports: [
         ClientsModule.registerAsync([
             {
                 name: 'NATS_CLIENT',
-                inject: [config.KEY],
-                useFactory: (configService: ConfigType<typeof config>) => {
+                useFactory: () => {
                     return {
                         transport: Transport.NATS,
                         options: {
-                            servers: [`nats://${configService.nats}:4222`],
+                            servers: getNatsServers(),
                         },
                     }
                 },
