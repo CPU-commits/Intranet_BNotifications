@@ -24,7 +24,10 @@ export class NotificationsService {
                             user: user._id.toString(),
                         })
                         .exec()
-                return notificationPreferences.preferences.app[preference]
+                return (
+                    notificationPreferences?.preferences?.app[preference] ??
+                    true
+                )
             }),
         )
     }
