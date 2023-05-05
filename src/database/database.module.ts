@@ -14,7 +14,11 @@ import config from '../config'
             useFactory: async (configService: ConfigType<typeof config>) => {
                 const { connection, host, port, dbName, user, password } =
                     configService.mongo
-                const uri = `${connection}://${user}:${password}@${host}:${port}`
+                let uri = `${connection}://${user}:${password}@${host}`
+                if (connection !== 'mongodb+srv') {
+                    uri += `:${port}`
+                }
+
                 const client = new MongoClient(uri)
                 await client.connect()
                 const database = client.db(dbName)
@@ -28,8 +32,13 @@ import config from '../config'
             useFactory: (configService: ConfigType<typeof config>) => {
                 const { connection, host, port, dbName, user, password } =
                     configService.mongo
+                let uri = `${connection}://${user}:${password}@${host}`
+                if (connection !== 'mongodb+srv') {
+                    uri += `:${port}`
+                }
+
                 return {
-                    uri: `${connection}://${user}:${password}@${host}:${port}`,
+                    uri,
                     dbName,
                 }
             },
